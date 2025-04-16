@@ -35,4 +35,4 @@ $tabs = $directories | ForEach-Object {
 $wtArgs = $tabs -join " ; "
 
 # Launch Windows Terminal with the constructed argument list.
-Start-Process wt -ArgumentList $wtArgs
+Start-Process -FilePath "wt.exe" -ArgumentList $wtArgs -WorkingDirectory $env:USERPROFILE
