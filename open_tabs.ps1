@@ -1,19 +1,38 @@
-# Save this as open_tabs.ps1
-# This PowerShell script opens Windows Terminal with multiple tabs,
-# each set to a specified working directory.
+# open_tabs.ps1
+# This script opens Windows Terminal with multiple tabs using absolute paths.
+# The paths are built using the user’s home directory and a fixed project root location.
 
-# Define an array with each Windows Terminal command for a new tab.
-$tabs = @(
-    'new-tab -d ".\src\nexus-api\services\nexus-web-service"',
-    'new-tab -d ".\src\nexus-api\services\direct-messaging-api"',
-    'new-tab -d ".\src\nexus-api\services\direct-messaging-api"',  # Duplicate for extra command tab
-    'new-tab -d ".\src\nexus\apps\mobile"',
-    'new-tab -d ".\src\nexus\apps\web"',
-    'new-tab -d ".\src\nexus\apps\web"'
+# Get the user home directory.
+$userHome = $env:USERPROFILE
+
+# Define the project root directory. Adjust "src" if your project is in a different folder.
+$projectRoot = Join-Path -Path $userHome -ChildPath "src"
+
+# Helper function to convert a relative path (from the project root) to an absolute path.
+function Get-AbsolutePath($relativePath) {
+    $fullPath = Join-Path -Path $projectRoot -ChildPath $relativePath
+    # Use Resolve-Path to ensure we get the absolute path (this will throw an error if the path does not exist).
+    return (Resolve-Path -Path $fullPath).Path
+}
+
+# Define an array of relative directories (paths relative to the project root)
+$directories = @(
+    "nexus-api\services\nexus-web-service",
+    "nexus-api\services\direct-messaging-api",
+    "nexus-api\services\direct-messaging-api",  # Duplicate for extra command tab
+    "nexus\apps\mobile",
+    "nexus\apps\web",
+    "nexus\apps\web"
 )
 
-# Concatenate the commands with semicolons to form a single argument string.
+# Construct the Windows Terminal tab command for each directory.
+$tabs = $directories | ForEach-Object {
+    $absPath = Get-AbsolutePath $_
+    "new-tab -d `"$absPath`""
+}
+
+# Join the tab commands with semicolons.
 $wtArgs = $tabs -join " ; "
 
-# Start Windows Terminal with the constructed argument list.
+# Launch Windows Terminal with the constructed argument list.
 Start-Process wt -ArgumentList $wtArgs
